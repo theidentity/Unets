@@ -7,7 +7,6 @@ from keras.callbacks import ModelCheckpoint,TensorBoard,EarlyStopping
 from keras.optimizers import Adam,SGD,RMSprop
 from keras.preprocessing.image import ImageDataGenerator
 
-import datetime
 import itertools
 import cv2
 from glob import glob
@@ -187,18 +186,18 @@ class Unet(object):
 		names = test_generator.filenames
 		names = [name.split('/')[-1] for name in names]
 
-		# predictions = model.predict_generator(
-		# 	generator = test_generator,
-		# 	steps = 663//self.batch_size + 1,
-		# 	verbose = 1
-		# 	)
+		predictions = model.predict_generator(
+			generator = test_generator,
+			steps = 663//self.batch_size + 1,
+			verbose = 1
+			)
 
-		# predictions = self.normalize_array(predictions,0,255)
+		predictions = self.normalize_array(predictions,0,255)
 
-		# if save:
-		# 	np.save('tmp/pred',predictions)
+		if save:
+			np.save('tmp/pred',predictions)
+			predictions = np.load('tmp/pred.npy')
 
-		predictions = np.load('tmp/pred.npy')
 		predictions = predictions.reshape((-1,self.img_rows,self.img_cols))
 
 		out_paths = [''.join([output_folder,name]) for name in names]
@@ -244,6 +243,6 @@ if __name__ == '__main__':
 	u1 = Unet()
 	# u1.train(lr=1e-4,num_epochs=20)
 	# u1.continue_training(lr=1e-4,num_epochs=20)
-	# u1.continue_training(lr=1e-5,num_epochs=20)
-	# u1.generate_output(save=True,mode='side_by_side',output_folder='data/outputs/side_by_side/')
+	u1.continue_training(lr=1e-5,num_epochs=20)
+	u1.generate_output(save=True,mode='side_by_side',output_folder='data/outputs/side_by_side/')
 	u1.generate_output(save=True,mode='cropped',output_folder='data/outputs/cropped/')
