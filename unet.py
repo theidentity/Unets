@@ -180,79 +180,60 @@ class Unet(object):
 			validation_steps = 28//self.batch_size + 1
 			)
 
-	def get_outputs(self):
+	def generate_output(self,save=True,mode='side_by_side',output_folder='data/outputs/'):
 
 		model = load_model(self.save_path)
 		test_generator = self.get_test_generator(self.test_img_path)
+		names = test_generator.filenames
+		names = [name.split('/')[-1] for name in names]
 
+		# predictions = model.predict_generator(
+		# 	generator = test_generator,
+		# 	steps = 663//self.batch_size + 1,
+		# 	verbose = 1
+		# 	)
 
-		for i in xrange(20//4):
+		# predictions = self.normalize_array(predictions,0,255)
 
-			X = test_generator.next()
-			y = model.predict(X)
+		# if save:
+		# 	np.save('tmp/pred',predictions)
 
-			X = self.normalize_array(X,0,255)
-			y = self.normalize_array(y,0,255)
+		predictions = np.load('tmp/pred.npy')
+		predictions = predictions.reshape((-1,self.img_rows,self.img_cols))
 
-			for j,(img,mask) in enumerate(zip(X,y)):
-				print i,j
-				print img.shape
-				print mask.shape
+		out_paths = [''.join([output_folder,name]) for name in names]
+		in_paths = [''.join(['data/test/',x]) for x in test_generator.filenames]
 
-				name = ''.join(['tmp/',str(i),'_',str(j),'.jpg'])
-				out = np.hstack([img,mask])
-				cv2.imwrite(name,out)
+		for in_path,out_path,mask in zip(in_paths,out_paths,predictions):
 
-
-	def test_model(self):
-		
-		model = load_model(self.save_path)
-		test_generator = self.get_test_generator(self.test_img_path)
-
-
-		for i in xrange(663//4):
-
-			print (663//4)-i,'remaining'
-
-			X = test_generator.next()
-			y = model.predict(X)
-
-			X = self.normalize_array(X,0,255)
-			y = self.normalize_array(y,0,255)
-
-			left = np.vstack([x for x in X])
-			right = np.vstack([x for x in y])
-			out = np.hstack([left,right])
-
-			name = ''.join(['tmp/wall/',str(i),'.jpg'])
-			cv2.imwrite(name,out)
+			print in_path
 			
-	def generate_masks(self):
-		model = load_model(self.save_path)
-		names = [x.split('/')[-1] for x in glob('data/CXR_png/*.png')]
+			if mode == 'mask_only':
+				mask = mask.reshape((self.img_rows,self.img_cols))
+				cv2.imwrite(out_path,mask)
 
-		for name in names:
-			print name 
+			elif mode == 'side_by_side':
+				img = cv2.imread(in_path,0)
+				img = cv2.resize(img,(self.img_rows,self.img_cols))
+				mask = mask.reshape((self.img_rows,self.img_cols))
 
-			in_path = ''.join(['data/CXR_png/',name])
-			out_path_mask = ''.join(['tmp/seperate/masks/',name])
-			out_path_img = ''.join(['tmp/seperate/cropped_images/',name])
+				out = np.hstack([img,mask])
+				cv2.imwrite(out_path,out)
 
-			img = cv2.imread(in_path,0)
-			img = cv2.resize(img,(self.img_rows,self.img_cols))
-			img = img/255.0
-			img = img.reshape((-1,self.img_rows,self.img_cols,1))
+			elif mode=='cropped':
+				img = cv2.imread(in_path,0)
+				img = cv2.resize(img,(self.img_rows,self.img_cols))
+				mask = mask.reshape((self.img_rows,self.img_cols))
 
-			y = model.predict(img)[0]
-			y = self.normalize_array(y,0,255)
-			print y.shape
-			cv2.imwrite(out_path_mask,y)
+				threshold = 50
+				img[mask<threshold] = 0 
 
-			crop_img = img[0].copy()
-			crop_img = self.normalize_array(crop_img,0,255)
-			crop_img[y<127] = 0
-			print crop_img.shape
-			cv2.imwrite(out_path_img,crop_img)
+				cv2.imwrite(out_path,img)
+
+			else:
+				cv2.imwrite(out_path,mask)
+
+		return predictions
 
 	def normalize_array(self,arr,lower=0,upper=255):
 	    arr = (upper-lower)*(arr-np.min(arr))/(np.max(arr)-np.min(arr))
@@ -261,9 +242,8 @@ class Unet(object):
 
 if __name__ == '__main__':
 	u1 = Unet()
-	u1.train(lr=1e-4,num_epochs=1)
-	u1.continue_training(lr=1e-4,num_epochs=20)
-	u1.continue_training(lr=1e-5,num_epochs=20)
-	# u1.get_outputs()
-	# u1.test_model()
-	# u1.generate_masks()
+	# u1.train(lr=1e-4,num_epochs=20)
+	# u1.continue_training(lr=1e-4,num_epochs=20)
+	# u1.continue_training(lr=1e-5,num_epochs=20)
+	# u1.generate_output(save=True,mode='side_by_side',output_folder='data/outputs/side_by_side/')
+	u1.generate_output(save=True,mode='cropped',output_folder='data/outputs/cropped/')

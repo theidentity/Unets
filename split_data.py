@@ -13,7 +13,7 @@ def get_train_test_names():
 	print len(names)
 
 	X = names
-	train_X,test_X = train_test_split(X,test_size=0.2)
+	train_X,test_X = train_test_split(X,test_size=0.2,random_state=42)
 	return train_X,test_X
 
 def create_folder(path):
@@ -54,10 +54,8 @@ def get_stats(base_path):
 			print root,":",len(filenames)
 
 if __name__ == '__main__':
-	create_folder_skeleton(base_path = 'data/foldA/')
-	train,test = get_train_test_names()
-	copy_sets(train,test,base_path='data/foldA/')
+	# create_folder_skeleton(base_path = 'data/foldA/')
+	# train,test = get_train_test_names()
+	# copy_sets(train,test,base_path='data/foldA/')
 	get_stats(base_path='data/foldA')
-
-# folds = KFold(n_splits=4)
-# for i,fold
+	get_stats(base_path='data/test/')
