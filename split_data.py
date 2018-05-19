@@ -54,8 +54,9 @@ def get_stats(base_path):
 			print root,":",len(filenames)
 
 if __name__ == '__main__':
-	# create_folder_skeleton(base_path = 'data/foldA/')
+	base_path = 'data/foldA'
+	# create_folder_skeleton(base_path = base_path)
 	# train,test = get_train_test_names()
-	# copy_sets(train,test,base_path='data/foldA/')
-	get_stats(base_path='data/foldA')
+	# copy_sets(train,test,base_path= base_path)
+	get_stats(base_path=base_path)
 	get_stats(base_path='data/test/')
