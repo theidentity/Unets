@@ -5,6 +5,7 @@
 ### Key Details
 * Implementation of a Unet with Keras
 * Based on the work [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
+* Segmented dataset for training obtained from [TB Chest Xray Image Sets](https://ceb.nlm.nih.gov/repositories/tuberculosis-chest-x-ray-image-data-sets/)
 
 |Item| Details|
 |---|---|
